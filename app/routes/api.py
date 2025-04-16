@@ -20,6 +20,7 @@ from aiogram.filters import Command
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 
+from settings import Settings
 from app.utils.prompts import DEBT_DISCUSSION_PROMPT, IDENTIFICATION_SYSTEM_PROMPT, ROUTER_ID_PROMPT, ROUTER_DEBT_PROMPT
 
 
@@ -54,6 +55,29 @@ LLM_TEMPERATURE_CONV = 0.1
 LLM_TEMPERATURE_ROUTER = 0.0
 
 
+# Форматирование промптов с данными из settings
+IDENTIFICATION_SYSTEM_PROMPT_FORMATTED = IDENTIFICATION_SYSTEM_PROMPT.format(
+    FULL_NAME=settings.FULL_NAME,
+    ACCOUNT_NUMBER=settings.ACCOUNT_NUMBER,
+    DEBT_AMOUNT=settings.DEBT_AMOUNT,
+    ADDRESS=settings.ADDRESS,
+    COMPANY_NAME=settings.COMPANY_NAME,
+    COMPANY_PHONE=settings.COMPANY_PHONE
+)
+
+DEBT_DISCUSSION_PROMPT_FORMATTED = DEBT_DISCUSSION_PROMPT.format(
+    FULL_NAME=settings.FULL_NAME,
+    ACCOUNT_NUMBER=settings.ACCOUNT_NUMBER,
+    DEBT_AMOUNT=settings.DEBT_AMOUNT,
+    ADDRESS=settings.ADDRESS,
+    COMPANY_NAME=settings.COMPANY_NAME,
+    COMPANY_PHONE=settings.COMPANY_PHONE,
+    PARTIAL_PAYMENT_AMOUNT=settings.PARTIAL_PAYMENT_AMOUNT
+)
+
+ROUTER_ID_PROMPT_FORMATTED = ROUTER_ID_PROMPT.format(
+    FULL_NAME=settings.FULL_NAME
+)
 
 # Модели
 LLM_CONVERSATIONAL = ChatOpenAI(api_key=OPENAI_API_KEY, model="gpt-4o", temperature=0.1)
