@@ -9,21 +9,21 @@ print("Полученный ответ:", data)
 chat_id = data["chat_id"]
 print("Получен chat_id:", chat_id)
 
-chat_id = 'b24aceb2-2757-4337-a9b8-85e03f4908da'
+# chat_id = '21a5c138-812b-4119-9258-bf3bda011f1d'
 
 
 # # Отправка ответа "Да" для перехода в следующую фазу (идентификация -> debt_discussion)
-# response = requests.post(
-#     f"{BASE_URL}/api/chat",
-#     json={"chat_id": chat_id, "message": "не планирую"}
-# )
-# data = response.json()
-# print("Ответ бота после подтверждения:", data)
+response = requests.post(
+    f"{BASE_URL}/api/chat",
+    json={"chat_id": chat_id, "message": "Да, я Алена Сергеевна"}
+)
+data = response.json()
+print("Ответ бота после подтверждения:", data)
 
-# Отправка сообщения для обсуждения задолженности
+# # Отправка сообщения для обсуждения задолженности
 # response = requests.post(
 #     f"{BASE_URL}/start_chat",
-#     json={"chat_id": chat_id, "message": "Привет, когда я могу оплатить?"}
+#     json={"chat_id": chat_id, "message": "Да, я вас слушаю"}
 # )
 # data = response.json()
 # print("Ответ бота в фазе задолженности:", data)
