@@ -93,25 +93,28 @@ agent = workflow.compile()
 
 router = Blueprint(name='api', import_name=__name__, url_prefix='/api')
 
+
 @router.route('/get_all_chat_ids', methods=['GET'])
 def get_all_chat_ids():
     """
     ---
     get:
-      summary: Получение списка активных чатов
-      description: Возвращает словарь всех активных чатов и их состояний
+      summary: Получение списка chat_id
+      description: Возвращает список всех активных chat_id
       tags:
         - main
       responses:
         200:
-          description: Список активных чатов
+          description: Список chat_id
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties: true
+                type: array
+                items:
+                  type: string
     """
-    return jsonify(current_app.config['SESSIONS_DICT'])
+    sessions = current_app.config.get('SESSIONS_DICT', {})
+    return jsonify(list(sessions.keys()))
 
 @router.route('/get_new_chat_id', methods=['POST'])
 def get_new_chat_id():
@@ -173,7 +176,11 @@ def chat():
     ---
     post:
       summary: Отправка сообщения в чат
-      description: Отправляет сообщение в чат и получает ответ от бота. Можно передавать любые переменные для подстановки в промпты.
+      description: |
+        Отправляет сообщение в чат и получает ответ от бота. Можно передавать любые переменные для подстановки в промпты.
+        В ответе всегда возвращается статус диалога:
+        - "in_progress" — диалог продолжается
+        - "finished" — диалог завершён (бот попрощался)
       tags:
         - main
       requestBody:
@@ -224,7 +231,16 @@ def chat():
           description: Ответ бота
           content:
             application/json:
-              schema: ChatSchema
+              schema:
+                type: object
+                properties:
+                  chat_id:
+                    type: string
+                  message:
+                    type: string
+                  status:
+                    type: string
+                    description: Статус диалога ("in_progress" или "finished")
         400:
           description: Ошибка
           content:
@@ -261,26 +277,26 @@ def chat():
             node_result = run_llm_conversation_node(current_state, DEBT_DISCUSSION_PROMPT.format(**prompt_vars))
             current_state["messages"].extend(node_result["messages"])
             for msg in [m for m in node_result["messages"] if isinstance(m, AIMessage)]:
-                return jsonify({"chat_id": user_id, "message": msg.content})
+                return jsonify({"chat_id": user_id, "message": msg.content, "status": "in_progress"})
         elif decision == "end_conversation":
             farewell = "Хорошо, в таком случае всего доброго, до свидания!"
-            return jsonify({"chat_id": user_id, "message": farewell})
+            return jsonify({"chat_id": user_id, "message": farewell, "status": "finished"})
         else:  # continue_identification
             node_result = run_llm_conversation_node(current_state, IDENTIFICATION_SYSTEM_PROMPT.format(**prompt_vars))
             current_state["messages"].extend(node_result["messages"])
             for msg in [m for m in node_result["messages"] if isinstance(m, AIMessage)]:
-                return jsonify({"chat_id": user_id, "message": msg.content})
+                return jsonify({"chat_id": user_id, "message": msg.content, "status": "in_progress"})
 
     elif phase == "debt_discussion":
         decision = _get_llm_router_decision(current_state, ROUTER_DEBT_PROMPT.format(FULL_NAME=prompt_vars["FULL_NAME"]))
         if decision == "end_conversation":
             farewell = "Хорошо, в таком случае всего доброго, до свидания!"
-            return jsonify({"chat_id": user_id, "message": farewell})
+            return jsonify({"chat_id": user_id, "message": farewell, "status": "finished"})
         else:  # continue_debt_discussion
             node_result = run_llm_conversation_node(current_state, DEBT_DISCUSSION_PROMPT.format(**prompt_vars))
             current_state["messages"].extend(node_result["messages"])
             for msg in [m for m in node_result["messages"] if isinstance(m, AIMessage)]:
-                return jsonify({"chat_id": user_id, "message": msg.content})
+                return jsonify({"chat_id": user_id, "message": msg.content, "status": "in_progress"})
 
     current_app.config['SESSIONS_DICT'][user_id] = [current_state]
 

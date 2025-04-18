@@ -1,0 +1,58 @@
+import requests
+
+# Базовый URL для API
+BASE_URL = "http://77.239.108.6:6543"
+
+# Отправка POST-запроса для создания нового чата
+response = requests.post(
+    f"{BASE_URL}/api/get_new_chat_id",
+    json={
+        "full_name": "Степанчук Алена Сергеевна",  # Полное имя пользователя
+        "company_name": "ЭнергоСбыт Плюс"          # Название компании
+    }
+)
+
+# Парсинг JSON-ответа
+data = response.json()
+
+# Вывод ответа и извлечение chat_id
+print("Полученный ответ:", data)
+chat_id = data["chat_id"]
+print("Получен chat_id:", chat_id)
+
+# Отправка POST-запроса для взаимодействия с чатом с использованием динамических переменных
+response = requests.post(
+    f"{BASE_URL}/api/chat",
+    json={
+        "chat_id": chat_id,  # ID чата, полученный из предыдущего запроса
+        "message": "да",  # Сообщение пользователя
+        "full_name": "Степанчук Алена Сергеевна",  # Полное имя пользователя
+        "account_number": "555888333",  # Номер ЛС счета
+        "debt_amount": "50 999 руб.",  # Сумма долга
+        "address": "Москва, ул. Победы, д. 1",  # Адрес
+        "company_name": "ЭнергоСбыт Плюс",  # Название компании
+        "company_phone": "8-800-123-45-67",  # Телефон компании
+        "partial_payment_amount": "50 000 руб."  # Сумма частичной оплаты
+    }
+)
+
+# Парсинг JSON-ответа
+data = response.json()
+
+# Вывод ответа бота
+print("Ответ бота:", data)
+
+# Отправка GET-запроса для получения списка всех активных чатов
+response = requests.get(f"{BASE_URL}/api/get_all_chat_ids")
+
+# Вывод списка активных чатов
+print("Список чатов:", response.json())
+
+# Отправка POST-запроса для удаления чата по его chat_id
+response = requests.post(
+    f"{BASE_URL}/api/remove_chat_by_id",
+    json={"chat_id": chat_id}  # ID чата для удаления
+)
+
+# Вывод ответа на запрос удаления чата
+print("Удаление чата:", response.json())
