@@ -94,28 +94,6 @@ agent = workflow.compile()
 router = Blueprint(name='api', import_name=__name__, url_prefix='/api')
 
 
-@router.route('/get_all_chat_ids', methods=['GET'])
-def get_all_chat_ids():
-    """
-    ---
-    get:
-      summary: Получение списка chat_id
-      description: Возвращает список всех активных chat_id
-      tags:
-        - main
-      responses:
-        200:
-          description: Список chat_id
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-    """
-    sessions = current_app.config.get('SESSIONS_DICT', {})
-    return jsonify(list(sessions.keys()))
-
 @router.route('/get_new_chat_id', methods=['POST'])
 def get_new_chat_id():
     """
@@ -299,6 +277,52 @@ def chat():
                 return jsonify({"chat_id": user_id, "message": msg.content, "status": "in_progress"})
 
     current_app.config['SESSIONS_DICT'][user_id] = [current_state]
+
+
+@router.route('/get_all_chat_ids', methods=['GET'])
+def get_all_chat_ids():
+    """
+    ---
+    get:
+      summary: Получение списка всех активных чатов
+      description: |
+        Возвращает список идентификаторов всех активных чатов.
+      tags:
+        - main
+      responses:
+        200:
+          description: Список идентификаторов чатов
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chat_ids:
+                    type: array
+                    items:
+                      type: string
+                    description: Список chat_id всех активных чатов
+                example:
+                  chat_ids: ["21a5c138-812b-4119-9258-bf3bda011f1d", "a2b5c138-812b-4119-9258-bf3bda011f1e"]
+        500:
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Описание ошибки
+                example:
+                  error: "Не удалось получить список чатов: <описание ошибки>"
+    """
+    try:
+        chat_ids = list(current_app.config['SESSIONS_DICT'].keys())
+        return jsonify({"chat_ids": chat_ids}), 200
+    except Exception as e:
+        return jsonify({"error": f"Не удалось получить список чатов: {str(e)}"}), 500
+
 
 @router.route('/remove_chat_by_id', methods=['POST'])
 def remove_chat_by_id():
